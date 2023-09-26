@@ -362,6 +362,14 @@ public class SerpuloPlanetGenerator extends PlanetGenerator{
         });
 
         //shoreline setup
+        pass((x, y) ->  {
+            floor = generateShoreline(x, y, 3, floor);
+            if(naval){
+                floor = generateShoreline(x, y, 2, floor);
+            }
+        });
+        
+        /*
         pass((x, y) -> {
             int deepRadius = 3;
 
@@ -409,7 +417,7 @@ public class SerpuloPlanetGenerator extends PlanetGenerator{
                     floor = floor == Blocks.water ? Blocks.deepwater : Blocks.taintedWater;
                 }
             });
-        }
+        }*/
 
         Seq<Block> ores = Seq.with(Blocks.oreCopper, Blocks.oreLead);
         float poles = Math.abs(sector.tile.v.y);
@@ -662,5 +670,25 @@ public class SerpuloPlanetGenerator extends PlanetGenerator{
                 state.rules.spawns = Waves.generate(sector.threat, new Rand(sector.id), state.rules.attackMode, true, false);
             }
         }
+    }
+
+    private Block generateShoreline( int x, int y, int deepRadius, Block floor ){
+        if(floor.asFloor().isLiquid && floor.asFloor().shallow){
+            for(int cx = -deepRadius; cx <= deepRadius; cx++){
+                for(int cy = -deepRadius; cy <= deepRadius; cy++){
+                    if((cx) * (cx) + (cy) * (cy) <= deepRadius * deepRadius){
+                        int wx = cx + x, wy = cy + y;
+
+                        Tile tile = tiles.get(wx, wy);
+                        if(tile != null && (!tile.floor().isLiquid || tile.block() != Blocks.air)){
+                            //found something solid, skip replacing anything
+                            return floor;
+                        }
+                    }
+                }
+            }
+            floor = floor == Blocks.darksandTaintedWater ? Blocks.taintedWater : Blocks.water;
+        }
+        return floor;
     }
 }

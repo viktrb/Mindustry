@@ -28,3 +28,8 @@ Perfective 1 - Big gaps in documentation (i.e. 'I hate java' followed by non des
 Perfective 2 - Update/add unit tests for all (some) modules, current testbench has few but very large tests
     Example - Unit tests for async module (core/src/mindustry/async)
                 Could not find explicit tests for these
+
+
+Completed:
+    Refactored SerpuloPlanetGenerator.java (added generateShoreline to generate)
+    
