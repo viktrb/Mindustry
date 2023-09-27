@@ -17,10 +17,6 @@ Look online forums / github issues for reported problems
 
 Potential todo items to refactor
 //TODO if the save is unloaded or map is hosted, these blocks do not get built. -- Control.java
-//TODO why is this even a thing? -- Logic.java
-
-Refactor checkgamestate in logic.java -- Separate logic if campaign = create separate functions for campaign instead of 
-                                            if/else in current functions
 
                                         -- Perfective --
 
@@ -32,4 +28,5 @@ Perfective 2 - Update/add unit tests for all (some) modules, current testbench h
 
 Completed:
     Refactored SerpuloPlanetGenerator.java (added generateShoreline to generate)
+    Refactored checkgamestate in logic.java
     
