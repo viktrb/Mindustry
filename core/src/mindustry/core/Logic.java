@@ -430,9 +430,6 @@ public class Logic implements ApplicationListener{
 
                 if(state.isCampaign()){
                     state.rules.sector.info.update();
-                }
-
-                if(state.isCampaign()){
                     universe.update();
                 }
                 Time.update();
