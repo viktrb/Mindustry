@@ -277,50 +277,54 @@ public class UI implements ApplicationListener, Loadable{
 
     public void showTextInput(String titleText, String text, int textLength, String def, boolean numbers, boolean allowEmpty, Cons<String> confirmed, Runnable closed){
         if(mobile){
-            var description = text;
-            var empty = allowEmpty;
-            Core.input.getTextInput(new TextInput(){{
-                this.title = (titleText.startsWith("@") ? Core.bundle.get(titleText.substring(1)) : titleText);
-                this.text = def;
-                this.numeric = numbers;
-                this.maxLength = textLength;
-                this.accepted = confirmed;
-                this.canceled = closed;
-                this.allowEmpty = empty;
-                this.message = description;
-            }});
-        }else{
-            new Dialog(titleText){{
-                cont.margin(30).add(text).padRight(6f);
-                TextFieldFilter filter = numbers ? TextFieldFilter.digitsOnly : (f, c) -> true;
-                TextField field = cont.field(def, t -> {}).size(330f, 50f).get();
-                field.setMaxLength(textLength);
-                field.setFilter(filter);
-                buttons.defaults().size(120, 54).pad(4);
-                buttons.button("@cancel", () -> {
-                    closed.run();
-                    hide();
-                });
-                buttons.button("@ok", () -> {
-                    confirmed.get(field.getText());
-                    hide();
-                }).disabled(b -> !allowEmpty && field.getText().isEmpty());
-
-                keyDown(KeyCode.enter, () -> {
-                    String text = field.getText();
-                    if(allowEmpty || !text.isEmpty()){
-                        confirmed.get(text);
-                        hide();
-                    }
-                });
-
-                closeOnBack(closed);
-                show();
-
-                Core.scene.setKeyboardFocus(field);
-                field.setCursorPosition(def.length());
-            }};
+            showTextInputMobile(titleText, text, textLength, def, numbers, allowEmpty, confirmed, closed);
+            return;
         }
+        new Dialog(titleText){{
+            cont.margin(30).add(text).padRight(6f);
+            TextFieldFilter filter = numbers ? TextFieldFilter.digitsOnly : (f, c) -> true;
+            TextField field = cont.field(def, t -> {}).size(330f, 50f).get();
+            field.setMaxLength(textLength);
+            field.setFilter(filter);
+            buttons.defaults().size(120, 54).pad(4);
+            buttons.button("@cancel", () -> {
+                closed.run();
+                hide();
+            });
+            buttons.button("@ok", () -> {
+                confirmed.get(field.getText());
+                hide();
+            }).disabled(b -> !allowEmpty && field.getText().isEmpty());
+
+            keyDown(KeyCode.enter, () -> {
+                String text = field.getText();
+                if(allowEmpty || !text.isEmpty()){
+                    confirmed.get(text);
+                    hide();
+                }
+            });
+
+            closeOnBack(closed);
+            show();
+
+            Core.scene.setKeyboardFocus(field);
+            field.setCursorPosition(def.length());
+        }};
+    }
+
+    private void showTextInputMobile(String titleText, String text, int textLength, String def, boolean numbers, boolean allowEmpty, Cons<String> confirmed, Runnable closed){
+        var description = text;
+        var empty = allowEmpty;
+        Core.input.getTextInput(new TextInput(){{
+            this.title = (titleText.startsWith("@") ? Core.bundle.get(titleText.substring(1)) : titleText);
+            this.text = def;
+            this.numeric = numbers;
+            this.maxLength = textLength;
+            this.accepted = confirmed;
+            this.canceled = closed;
+            this.allowEmpty = empty;
+            this.message = description;
+        }});
     }
 
     public void showTextInput(String title, String text, String def, Cons<String> confirmed){

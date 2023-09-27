@@ -29,4 +29,5 @@ Perfective 2 - Update/add unit tests for all (some) modules, current testbench h
 Completed:
     Refactored SerpuloPlanetGenerator.java (added generateShoreline to generate)
     Refactored checkgamestate in logic.java
+    Started adding some helper mobile functions
     
