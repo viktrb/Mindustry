@@ -58,6 +58,7 @@ public class SettingsMenuDialog extends BaseDialog{
             graphics.rebuild();
             sound.rebuild();
             game.rebuild();
+
             updateScrollFocus();
         });
 
@@ -296,7 +297,192 @@ public class SettingsMenuDialog extends BaseDialog{
         }
     }
 
+
+    // Refactor of addSettings
+
     void addSettings(){
+        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
+        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
+        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
+
+        game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
+        
+        if(mobile){
+            addSettingsMobile();
+        }
+        else{
+            addSettingsComp();
+        }
+
+        game.checkPref("savecreate", true);
+        game.checkPref("blockreplace", true);
+        game.checkPref("conveyorpathfinding", true);
+        game.checkPref("hints", true);
+        game.checkPref("logichints", true);
+
+        game.checkPref("doubletapmine", false);
+        game.checkPref("commandmodehold", true);
+
+        int[] lastUiScale = {settings.getInt("uiscale", 100)};
+
+        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
+            //if the user changed their UI scale, but then put it back, don't consider it 'changed'
+            Core.settings.put("uiscalechanged", s != lastUiScale[0]);
+            return s + "%";
+        });
+
+        graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
+
+        graphics.sliderPref("bloomintensity", 6, 0, 16, i -> (int)(i/4f * 100f) + "%");
+        graphics.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
+
+        graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
+        graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
+        graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
+            if(ui.settings != null){
+                Core.settings.put("preferredlaseropacity", s);
+            }
+            return s + "%";
+        });
+        graphics.sliderPref("bridgeopacity", 100, 0, 100, 5, s -> s + "%");
+
+        graphics.checkPref("effects", true);
+        graphics.checkPref("atmosphere", !mobile);
+        graphics.checkPref("drawlight", true);
+        graphics.checkPref("destroyedblocks", true);
+        graphics.checkPref("blockstatus", false);
+        graphics.checkPref("playerchat", true);
+        
+        graphics.checkPref("minimap", !mobile);
+        graphics.checkPref("smoothcamera", true);
+        graphics.checkPref("position", false);
+        
+        graphics.checkPref("fps", false);
+        graphics.checkPref("playerindicators", true);
+        graphics.checkPref("indicators", true);
+        graphics.checkPref("showweather", true);
+        graphics.checkPref("animatedwater", true);
+
+        if(Shaders.shield != null){
+            graphics.checkPref("animatedshields", !mobile);
+        }
+
+        graphics.checkPref("bloom", true, val -> renderer.toggleBloom(val));
+
+        graphics.checkPref("pixelate", false, val -> {
+            if(val){
+                Events.fire(Trigger.enablePixelation);
+            }
+        });
+
+        if(Core.settings.getBool("linear")){
+            for(Texture tex : Core.atlas.getTextures()){
+                TextureFilter filter = TextureFilter.linear;
+                tex.setFilter(filter, filter);
+            }
+        }
+
+        graphics.checkPref("skipcoreanimation", false);
+        graphics.checkPref("hidedisplays", false);
+    }
+
+    void addSettingsComp(){
+        game.checkPref("crashreport", true);
+        
+        game.checkPref("backgroundpause", true);
+        game.checkPref("buildautopause", false);
+        game.checkPref("distinctcontrolgroups", true);
+        
+        game.checkPref("modcrashdisable", true);
+
+        if(steam){
+            game.sliderPref("playerlimit", 16, 2, 32, i -> {
+                platform.updateLobby();
+                return i + "";
+            });
+
+            if(!Version.modifier.contains("beta")){
+                game.checkPref("steampublichost", false, i -> {
+                    platform.updateLobby();
+                });
+            }
+        }
+        game.checkPref("console", false);
+        
+        graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
+        graphics.checkPref("fullscreen", false, b -> {
+            if(b && settings.getBool("borderlesswindow")){
+                Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                settings.put("borderlesswindow", false);
+                graphics.rebuild();
+            }
+
+            if(b){
+                Core.graphics.setFullscreen();
+            }else{
+                Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+            }
+        });
+
+        graphics.checkPref("borderlesswindow", false, b -> {
+            if(b && settings.getBool("fullscreen")){
+                Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                settings.put("fullscreen", false);
+                graphics.rebuild();
+            }
+            Core.graphics.setBorderless(b);
+        });
+
+        Core.graphics.setVSync(Core.settings.getBool("vsync"));
+
+        if(Core.settings.getBool("fullscreen")){
+            Core.app.post(() -> Core.graphics.setFullscreen());
+        }
+
+        if(Core.settings.getBool("borderlesswindow")){
+            Core.app.post(() -> Core.graphics.setBorderless(true));
+            }
+   
+        graphics.checkPref("coreitems", true);
+    
+        graphics.checkPref("mouseposition", false);
+        
+        //iOS (and possibly Android) devices do not support linear filtering well, so disable it
+        if(!ios){
+            graphics.checkPref("linear", !mobile, b -> {
+                for(Texture tex : Core.atlas.getTextures()){
+                    TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
+                    tex.setFilter(filter, filter);
+                }
+            });
+        }
+        if(OS.isMac){
+            graphics.checkPref("macnotch", false);
+        }
+
+        Core.settings.put("swapdiagonal", false);
+    }
+
+    void addSettingsMobile(){
+        game.checkPref("autotarget", true);
+        if(!ios){
+            game.checkPref("keyboard", false, val -> {
+                control.setInput(val ? new DesktopInput() : new MobileInput());
+                input.setUseKeyboard(val);
+            });
+            if(Core.settings.getBool("keyboard")){
+                control.setInput(new DesktopInput());
+                input.setUseKeyboard(true);
+            }
+        }else{
+            Core.settings.put("keyboard", false);
+        }
+        settings.put("linear", false);
+    }
+
+    //
+
+    void addSettingsOld(){
         sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
         sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
