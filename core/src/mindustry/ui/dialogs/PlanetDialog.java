@@ -296,6 +296,7 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
 
     void addBack(){
         buttons.button("@back", Icon.left, this::hide).size(200f, 54f).pad(2).bottom();
+        buttons.button("@quit", Icon.left, this::hide).size(200f, 54f).pad(2).bottom();
     }
 
     void addTech(){
